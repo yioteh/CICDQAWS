@@ -1,0 +1,32 @@
+language: node_js
+
+node_js:
+- '6'
+
+addons:
+  apt:
+    sources:
+    - heroku
+    packages:
+    - heroku-toolbelt
+        
+install:
+- npm install
+
+script: true
+
+before_deploy:
+- cat .netrc >> $HOME/.netrc
+- chmod 0600 /home/travis/.netrc
+- heroku apps
+- heroku apps | grep -q cicdqaws-$TRAVIS_BRANCH || heroku apps:create cicdqaws-$TRAVIS_BRANCH
+- heroku git:remote -a cicdqaws-$TRAVIS_BRANCH
+
+deploy:
+  provider: heroku
+  api_key: efdffcc6-3d17-4eb5-a073-06e8d1f7e5bc
+  app: cicdqaws-$TRAVIS_BRANCH
+  on: $TRAVIS_BRANCH
+
+after_deploy:
+- ./node_modules/.bin/wdio wdio.conf || travis_terminate 1
